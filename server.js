@@ -1,19 +1,16 @@
+require("dotenv").config();
 let express = require("express");
 let app = express();
 let reloadMagic = require("./reload-magic.js");
-/////problem ici
-let fileRoutes = require("./image-upload.js");
 let multer = require("multer");
 let uploads = multer({
   dest: __dirname + "/uploads",
 });
 let mongodb = require("mongodb");
 let MongoClient = mongodb.MongoClient;
-// let stripe = require("stripe")("sk_test_B6PEcUDOSFm8P086vEseWkiG00d8thvwtz");
 let ObjectId = mongodb.ObjectID;
 let dbo = undefined;
-let url =
-  "mongodb+srv://bob:bobsue@cluster0-moshr.azure.mongodb.net/test?retryWrites=true&w=majority";
+let url = process.env.MONGO_ACCESS;
 MongoClient.connect(url, { useUnifiedTopology: true })
   .then((client) => {
     dbo = client.db("Roleplay");
@@ -32,8 +29,49 @@ app.use("/", express.static("build")); // Needed for the HTML and JS files
 app.use("/uploads", express.static("uploads"));
 app.use("/", express.static("public")); // Needed for local assets
 app.use(express.static("public"));
+app.use("/src", express.static("router"));
+
+let multerS3 = require("multer-s3");
+let aws = require("aws-sdk");
+// let router = express.Router();
+// let upload = require("./src/image-upload.js");
+
+const { AWS_SECRET, AWS_ACCESS } = process.env;
+aws.config.update({
+  secretAccessKey: AWS_SECRET,
+  accessKeyId: AWS_ACCESS,
+  region: "us-east-1",
+});
+
+let s3 = new aws.S3({ apiVersion: "2006-03-01" });
+
+let upload = multer({
+  storage: multerS3({
+    s3: s3,
+    bucket: "glorious-roll",
+    acl: "public-read",
+    metadata: function (req, file, cb) {
+      cb(null, { fieldName: file.fieldname });
+    },
+    key: function (req, file, cb) {
+      cb(null, Date.now().toString());
+    },
+  }),
+});
+
+// let simgleUpload = upload.single("image");
 
 /////////// APP. METHOD
+
+// app.post("/octopus", upload.single("image"), function (req, res) {
+//   res.json({ imageUrl: req.file.location });
+// });
+
+// router.post("/image-upload", function (req, res) {
+//   simgleUpload(req, res, function (err) {
+//     return res.json({ imageUrl: req.file.location });
+//   });
+// });
 
 app.post("/login", uploads.none(), async (req, res) => {
   let username = req.body.username;
@@ -538,8 +576,8 @@ app.post("/deleteTheEventConvention", uploads.none(), async (req, res) => {
     return;
   }
 });
-
-app.post("/hostingAEvent", uploads.single("imgFile"), (req, res) => {
+////travail ici
+app.post("/hostingAEvent", upload.single("imgFile"), (req, res) => {
   let sessionId = req.cookies.sid;
   let host = sessions[sessionId];
   let title = req.body.title;
@@ -558,7 +596,8 @@ app.post("/hostingAEvent", uploads.single("imgFile"), (req, res) => {
   let address = req.body.address;
   let location = JSON.parse(req.body.location);
   let numPlayers = req.body.numPlayers;
-  let img = "/uploads/" + req.file.filename;
+  let img = req.file.location;
+  // let img = "/uploads/" + req.file.filename;
   let eventId = "" + Math.floor(Math.random() * 1000000);
 
   if (host === undefined) {
@@ -1071,10 +1110,10 @@ app.post("/newGmEventConvention", uploads.none(), async (req, res) => {
     return;
   }
 });
-
+////travail ici
 app.post(
   "/creatingAConventionTable",
-  uploads.single("imgFile"),
+  upload.single("imgFile"),
   async (req, res) => {
     const sessionId = req.cookies.sid;
     if (sessions[sessionId] === undefined) {
@@ -1102,7 +1141,8 @@ app.post(
     let description = req.body.description;
     // let location = req.body.location;
     let numPlayers = req.body.numPlayers;
-    let img = "/uploads/" + req.file.filename;
+    let img = req.file.location;
+    // let img = "/uploads/" + req.file.filename;
     let conventionTable = {
       gm: gm,
       tableCreator: tableCreator,
@@ -1139,8 +1179,8 @@ app.post(
     }
   }
 );
-
-app.post("/creatingANewToken", uploads.single("imgFile"), async (req, res) => {
+/////travail ici
+app.post("/creatingANewToken", upload.single("imgFile"), async (req, res) => {
   const sessionId = req.cookies.sid;
   if (sessions[sessionId] === undefined) {
     res.status(403);
@@ -1158,7 +1198,8 @@ app.post("/creatingANewToken", uploads.single("imgFile"), async (req, res) => {
   let permission = [host];
   let height = 60;
   let width = 60;
-  let imgFile = "/uploads/" + req.file.filename;
+  let imgFile = req.file.location;
+  // let imgFile = "/uploads/" + req.file.filename;
   let numberOfTokens = Number(req.body.numberOfTokens);
   try {
     await dbo.collection("tokens").insertMany(

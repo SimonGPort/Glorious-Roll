@@ -14,6 +14,7 @@ let upload = multer({
   storage: multerS3({
     s3: s3,
     bucket: "glorious-roll",
+    acl: "public-read",
     metadata: function (req, file, cb) {
       cb(null, { fieldName: file.fieldname });
     },
@@ -23,4 +24,4 @@ let upload = multer({
   }),
 });
 
-module.exports = { upload };
+module.exports = upload;
