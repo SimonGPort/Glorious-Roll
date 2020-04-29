@@ -1,9 +1,9 @@
 let __init_status = false;
 
 let __init_magic_reload = async () => {
-  if (process.env.NODE_ENV !== "development") {
-    return;
-  }
+  //   if (process.env.NODE_ENV !== "development") {
+  //     return;
+  //   }
 
   let closed = false;
   let createConnection = () => {
