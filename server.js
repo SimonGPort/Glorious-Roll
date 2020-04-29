@@ -23,7 +23,9 @@ const users = [];
 let loadingGameUpdate = [];
 const sessions = {};
 
-reloadMagic(app);
+if (process.env.NODE_ENV === "development") {
+  reloadMagic(app);
+}
 
 app.use("/", express.static("build")); // Needed for the HTML and JS files
 app.use("/uploads", express.static("uploads"));
