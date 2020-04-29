@@ -7,9 +7,7 @@ import store from "./store.js";
 
 import reloadMagic from "./reload-magic-client.js"; // automatic reload
 
-if (process.env.NODE_ENV === "development") {
-  reloadMagic(); // automatic reload
-}
+reloadMagic(); // automatic reload
 
 ReactDOM.render(
   <Provider store={store}>
