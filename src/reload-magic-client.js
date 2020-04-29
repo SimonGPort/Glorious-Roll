@@ -26,7 +26,7 @@ let __init_magic_reload = async () => {
     let tryMany = async () => {
       while (true) {
         try {
-          console.log("attempting");
+          console.log("attempting", process.env.NODE_ENV);
           let ret = await createConnection();
           return ret;
         } catch (err) {}
