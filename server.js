@@ -23,6 +23,7 @@ const users = [];
 let loadingGameUpdate = [];
 const sessions = {};
 
+//reloadMagic
 if (process.env.NODE_ENV === "development") {
   reloadMagic(app);
 }
